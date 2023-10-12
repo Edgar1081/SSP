@@ -5,8 +5,12 @@ project('Subset Sum Problem', 'cpp',
 # draw_dep = dependency('libxml-2.0', required: true)
 
 # Main executable
-solve = ['src/main/execs/SSP.cpp']
-executable('solve', solve, c_args : ['-g'])
+# solve = ['src/main/execs/SSP.cpp']
+# executable('solve', solve, c_args : ['-g'])
+
+# Read executable
+read = ['src/main/ssp/execs/Read.cpp']
+executable('read', read, c_args : ['-g'])
 
 # #Eval an array
 # evalfile = ['src/main/execs/Eval.cpp']
