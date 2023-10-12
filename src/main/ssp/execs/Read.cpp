@@ -12,7 +12,7 @@ int main(int argc, char *argv[]) {
 
 
     for(int i = 0; i<size; i++){
-        std::cout << ins[i]-> get_id();
+        std::cout << ins[i];
         if(i != size-1)
             std::cout << ",";
     }
