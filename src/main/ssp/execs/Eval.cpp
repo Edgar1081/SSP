@@ -22,16 +22,15 @@ int main(int argc, char *argv[]) {
     std::shared_ptr<Instance> instance =
         std::make_shared<Instance>(size, orig, om);
 
-    std::bitset<1000> sol = instance->get_init(0);
-
     std::shared_ptr<Agent> a =
-        std::make_shared<Agent>(instance, size, target, sol);
+        std::make_shared<Agent>(instance, size, target);
 
     std::cout << "COST: " << a-> get_cost() << std::endl;
     std::cout << "MASS: " << a-> get_mass() << std::endl;
 
     std::cout << target << std::endl;
 
+    std::bitset<1000> sol = a->get_sol_bits();
     for(int i = 0; i < size; i++){
         if(sol[i])
             std::cout << orig[i];

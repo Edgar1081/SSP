@@ -12,21 +12,35 @@ int main(int argc, char *argv[]) {
     std::shared_ptr<int[]> orig = input->get_array();
     int target = input->get_target();
 
-    std::cout << std::setprecision(16);
+    std::cout << std::fixed << std::setprecision(16);
 
-    std::unique_ptr<GSA> gsa = std::make_unique<GSA>(0, 10, size, orig, target);
-    gsa->print_masses();
+    std::unique_ptr<GSA> gsa = std::make_unique<GSA>(12345, 100, size, orig, target);
 
-    for(int i = 0; i <  10; i++)
-        for(int j = i+1; j < 10; j++)
-            std::cout << "(" << i << "," << j << ") " << gsa->get_distance(i,j) << std::endl;
 
-    std::cout << gsa->get_massive() << std::endl;
-    std::cout << gsa->get_massive_index() << std::endl;
+    gsa->print_distances();
 
-    std::cout << gsa->get_fastest_index() << std::endl;
-    std::cout << gsa->get_fastest() << std::endl;
 
-    std::cout << gsa->get_closest() << std::endl;
+    for(int i = 0; i< 1000; i++){
+        gsa->iterate();
+        gsa->print_masses();
+        std::cout << "ITER: " << i << std::endl;
+        std::cout << gsa->get_massive_index() <<
+        ": " << gsa->get_massive() << std::endl;
+
+        std::cout << gsa->get_fastest_index() <<
+        ": " << gsa->get_fastest() << std::endl;
+    }
+
+    std::shared_ptr<int []> best = gsa->get_sol();
+    int subset_size = gsa->get_sol_size();
+    gsa->print_cost();
+
+    for(int i = 0; i < subset_size; i++)
+        std::cout<< best[i] << ",";
+
+
+
+    std::cout<< std::endl;
+    std::cout<< subset_size;
     return 0;
 }
