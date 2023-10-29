@@ -12,13 +12,13 @@ project('Subset Sum Problem', 'cpp',
 read = ['src/main/ssp/execs/Read.cpp']
 executable('read', read, c_args : ['-g'])
 
-# #Eval an array
-# evalfile = ['src/main/execs/Eval.cpp']
-# executable('eval', evalfile, dependencies : [sqlite_dep], c_args : ['-g'])
+# Eval a sol
+eval = ['src/main/ssp/execs/Eval.cpp']
+executable('eval', eval, c_args : ['-g'])
 
-# #Prints full eval
-# evaltotalfile = ['src/main/execs/Evalstotal.cpp']
-# executable('fullevals', evaltotalfile, dependencies : [sqlite_dep], c_args : ['-g'])
+# Prints full list of massses
+populate = ['src/main/ssp/execs/Populate.cpp']
+executable('populate', populate, c_args : ['-g'])
 
 # #Sweep
 # sweepfile = ['src/main//execs/Sweep.cpp']
