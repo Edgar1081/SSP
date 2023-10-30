@@ -14,7 +14,6 @@ class GSA {
     int seed;
     int rosas;
     int size;
-    int64_t Omega;
     std::shared_ptr<int[]> orig;
     int target;
     std::shared_ptr<Agent>* agents;
@@ -26,18 +25,9 @@ class GSA {
     int worst_fit;
     std::mt19937 gen;
 
-    void set_Omega(){
-      int64_t sum = 0;
-      for(int i = 0; i < size; i++)
-        if(orig[i] > 0)
-          sum += orig[i];
-      Omega = sum;
-    }
-
     void update_masses(){
       int b = std::numeric_limits<int>::max();
       int w = -1;
-
       for(int i = 0; i < rosas; i++){
         std::shared_ptr<Agent> agent = agents[i];
         if(agent->get_cost() > w)
@@ -45,7 +35,6 @@ class GSA {
         if(agent->get_cost() < b)
           b = agent->get_cost();
       }
-
       best_fit = b;
       worst_fit = w;
       for(int i = 0; i < rosas; i++){
@@ -55,7 +44,7 @@ class GSA {
     }
 
     void fill_agents(std::shared_ptr<Instance> ins){
-      std::uniform_int_distribution<int> M(0, 4);
+      std::uniform_int_distribution<int> M(1, 99);
       agents = new std::shared_ptr<Agent>[rosas];
       int prob = 0;
       int probofprob = 0;
@@ -71,6 +60,7 @@ class GSA {
 
     void update_massive(){
       bigger_mass_index = -1;
+      smaller_mass_index = -1;
       bigger_mass = -1;
       for(int i = 0; i < rosas; i++){
         std::shared_ptr<Agent> agent = agents[i];
@@ -78,13 +68,14 @@ class GSA {
           bigger_mass = agent->get_mass();
           bigger_mass_index = agent->get_index();
         }
+        if(agent->get_mass() == 0){
+          smaller_mass_index = agent->get_index();
+        }
       }
       if(bigger_mass_index == -1){
         bigger_mass_index = 0;
         bigger_mass = agents[bigger_mass_index]->get_mass();
       }
-
-
     }
 
     void update_forces(){
@@ -92,10 +83,10 @@ class GSA {
       double f = -1;
       for(int i = 0; i < rosas; i++){
         if(i == bigger_mass_index){
-          agents[i]->calc_force(agents[bigger_mass_index], 1000, 0);
+          //agents[i]->calc_force(agents[bigger_mass_index], 1000, 0);
           continue;
         }
-        double d = hamming1(i, bigger_mass_index);
+        double d = distance(i, bigger_mass_index);
         agents[i]->calc_force(agents[bigger_mass_index], 1000, d);
         if(agents[i]->get_force() > f){
           f = agents[i] -> get_force();
@@ -120,27 +111,15 @@ class GSA {
       delete[] s;
     }
 
-    int hamming1(int i, int j){
+    int distance(int i, int j){
       std::shared_ptr<Agent> a =agents[i];
       std::shared_ptr<Agent> b =agents[j];
-      return hamming(a,b);
-    }
-
-    int hamming(std::shared_ptr<Agent> a, std::shared_ptr<Agent> b){
-      std::bitset<1000> h = a->get_sol() ^ b->get_sol();
-      return h.count();
+      return a->distance(b);
     }
 
     static bool compare_tuples(std::tuple<int, double> A,
                         std::tuple<int, double> B){
-      return std::get<1>(A) < std::get<1>(B);
-    }
-
-
-    void close_n(int a, int b, int n){
-      for(int i = 0; i < n; i++){
-        close(a,b);
-      }
+      return std::get<1>(A) > std::get<1>(B);
     }
 
     void update_sys(){
@@ -156,9 +135,8 @@ class GSA {
       seed(_seed),rosas(_rosas), size(_size),
       orig(_orig), target(_target){
       gen.seed(seed);
-      set_Omega();
       std::shared_ptr<Instance> instance =
-        std::make_shared<Instance>(size, orig, Omega);
+        std::make_shared<Instance>(size, orig);
       orig = instance->get_orig();
       fill_agents(instance);
       update_masses();
@@ -181,7 +159,7 @@ class GSA {
     }
 
     int get_distance(int i, int j){
-      return hamming(agents[i],agents[j]);
+      return distance(i,j);
     }
 
     std::bitset<1000> get_sol(int i){
@@ -189,20 +167,13 @@ class GSA {
     }
 
     void close(int i, int j){
-      int h = hamming1(i,j);
+      std::shared_ptr<Agent> A = agents[i];
+      std::shared_ptr<Agent> B = agents[j];
+      int h = A->distance(B);
       if(h == 0)
         return;
-      std::bitset<1000> A = agents[i]->get_sol();
-      std::bitset<1000> B = agents[j]->get_sol();
-      std::uniform_int_distribution<int> distrib(0, size);
-
-      while(true){
-        int x = distrib(gen);
-        if(A[x] != B[x]){
-          agents[i]->flip(x);
-          break;
-        }
-      }
+      std::uniform_int_distribution<int> distrib(0,size);
+      A->close(B, distrib, gen);
     }
 
     void print_distances(){
@@ -210,7 +181,7 @@ class GSA {
         for(int j= i+1; j < rosas; j++)
           std::cout <<
             "(" << i << "," << j << "): " <<
-            hamming1(i,j) << std::endl;
+            distance(i,j) << std::endl;
       }
     }
 
@@ -230,12 +201,11 @@ class GSA {
       return agents[fastest_index]->get_v();
     }
 
-
     int get_closest(){
       int d = std::numeric_limits<int>::max();
       for(int i = 0; i <  10; i++)
         for(int j = i+1; j < 10; j++){
-          int h = hamming(agents[i], agents[j]);
+          int h = distance(i, j);
           if(h < d)
             d = h;
         }
@@ -246,56 +216,103 @@ class GSA {
       int d = -1;
       for(int i = 0; i <  10; i++)
         for(int j = i+1; j < 10; j++){
-          int h = hamming(agents[i], agents[j]);
+          int h = distance(i,j);
           if(h > d)
             d = h;
         }
       return d;
     }
 
-
     bool all_together(){
       int total_d = 0;
-      for(int i = 0; i <  10; i++)
-        for(int j = i+1; j < 10; j++)
-          total_d += hamming1(i,j);
-      return total_d <= 0;
+      for(int i = 0; i <  rosas; i++)
+        if(agents[i]->get_mass() >= 1.0)
+          total_d++;
+      return total_d >= rosas-1;
     }
 
     void solve(){
+      solve_gen(false);
+    }
+
+    void solve_coords(){
+      solve_gen(true);
+    }
+
+    void solve_gen(bool c){
+      int i = 0;
       while(!all_together()){
-        iterate();
-        std::cout << agents[bigger_mass_index]->get_cost() << std::endl;
+        if(agents[bigger_mass_index]->get_cost() > 0)
+          random_move(bigger_mass_index);
+        random_move(smaller_mass_index);
+        update_massive();
+        update_sys();
+
+        iterate(c);
+        if(!c)
+          std::cout << i++ << ": " <<
+            agents[bigger_mass_index]->get_cost() << std::endl;
       }
     }
 
-    void iterate(){
+    std::string res(unsigned __int128 n) {
+      n = static_cast<__int128>(n);
+      if (n == 0) {
+        return "0";
+      }
+      std::string result;
+      bool isNegative = false;
+      if (n < 0) {
+        isNegative = true;
+        n = -n;
+      }
+      while (n > 0) {
+        char digit = '0' + static_cast<char>(n % 10);
+        result = digit + result;
+        n /= 10;
+      }
+      if (isNegative) {
+        result = '-' + result;
+      }
+      return result;
+    }
+    void print_coords(){
       for(int i = 0; i< rosas; i++){
-        if(i == bigger_mass_index)
+        std::shared_ptr<Agent> a = agents[i];
+        std::cout << res(a->get_x()) << "," <<
+          res(a->get_y()) << "," << a->get_mass() << std::endl;
+      }
+      std::cout << std::endl;
+    }
+
+    void iterate(bool c){
+      std::tuple<int, double>* s= new std::tuple<int, double>[rosas];
+      for(int i = 0; i < rosas; i++)
+        s[i] = std::make_tuple(i, agents[i]->get_v());
+      std::sort(s, s + rosas, compare_tuples);
+
+      if(c)
+        print_coords();
+      for(int i = 0; i< rosas; i++){
+        std::shared_ptr<Agent> agent =
+          agents[std::get<0>(s[i])];
+        int index = agent->get_index();
+        if(index == bigger_mass_index)
           continue;
-        int v = agents[i]->get_v();
-        for(int j = 0; j<v; j++){
-          close(i, bigger_mass_index);
+
+        int v = agent->get_v();
+        for(int j = 0; j < v; j++){
+          close(index, bigger_mass_index);
           update_masses();
           update_sys();
         }
       }
-      // move_sys();
+      delete [] s;
     }
 
-    void update_bigger(){
-      for(int i = 0; i < rosas; i++){
-        std::shared_ptr<Agent> agent = agents[i];
-        int h = hamming1(bigger_mass_index, i);
-        agents[bigger_mass_index]->calc_force(agent, 1000, h);
-        int center_v = agents[bigger_mass_index]->get_force();
-        close_n(bigger_mass_index, i, std::ceil(center_v));
-      }
-    }
-
-    void flip_random(int i){
-      std::uniform_int_distribution<int> distrib(0, size);
-
+    void random_move(int i){
+      std::uniform_int_distribution<int> distrib(0, size-1);
+      agents[i]->random_move(distrib);
     }
 
     void print_cost(){
@@ -311,5 +328,4 @@ class GSA {
     int get_sol_size(){
       return agents[bigger_mass_index]->get_subset_size();
     }
-
 };

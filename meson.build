@@ -20,9 +20,14 @@ executable('eval', eval, c_args : ['-g'])
 populate = ['src/main/ssp/execs/Populate.cpp']
 executable('populate', populate, c_args : ['-g'])
 
-# #Sweep
-# sweepfile = ['src/main//execs/Sweep.cpp']
-# executable('sweep', sweepfile, dependencies : [sqlite_dep], c_args : ['-g'])
+# Coords
+coords = ['src/main/ssp/execs/Coords.cpp']
+executable('coords', coords, c_args : ['-g'])
+
+
+# #FALTA SWEEP
+# drawfile = ['src/main//execs/Draw.cpp']
+# executable('draw', drawfile, dependencies : [sqlite_dep, draw_dep], c_args : ['-g'])
 
 # #Draw
 # drawfile = ['src/main//execs/Draw.cpp']

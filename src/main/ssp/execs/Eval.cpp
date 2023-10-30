@@ -1,4 +1,3 @@
-#pragma once
 #include "../Io.h"
 #include "../GSA.h"
 #include <memory>
@@ -12,15 +11,8 @@ int main(int argc, char *argv[]) {
     std::shared_ptr<int[]> orig = input->get_array();
     int target = input->get_target();
 
-    int om = 0;
-
-    for(int i = 0; i< size; i++){
-        if(orig[i] > 0)
-            om += orig[i];
-    }
-
     std::shared_ptr<Instance> instance =
-        std::make_shared<Instance>(size, orig, om);
+        std::make_shared<Instance>(size, orig);
 
     std::shared_ptr<Agent> a =
         std::make_shared<Agent>(instance, size, target);

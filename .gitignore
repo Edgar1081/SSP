@@ -36,6 +36,9 @@ debug
 release
 build
 *.txt
+*.py
+*.jpg
+*.gp
 *.tsp
 *.svg
 
