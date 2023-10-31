@@ -29,9 +29,17 @@ int main(int argc, char *argv[]) {
 
 
 
-
+    gsa->print_masses();
     gsa->solve();
     gsa->print_masses();
+    std::cout<< std::endl;
+
+
+    std::cout<< std::endl;
+
+    gsa->sweep_all();
+
+
     std::shared_ptr<int []> best = gsa->get_sol();
     int subset_size = gsa->get_sol_size();
     gsa->print_cost();
@@ -39,11 +47,7 @@ int main(int argc, char *argv[]) {
     for(int i = 0; i < subset_size; i++)
         std::cout<< best[i] << ",";
 
-    std::cout<< std::endl;
     std::cout<< subset_size;
-
-
-    std::cout<< std::endl;
 
     return 0;
 }

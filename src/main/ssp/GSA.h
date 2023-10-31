@@ -24,6 +24,7 @@ class GSA {
     int best_fit;
     int worst_fit;
     std::mt19937 gen;
+    int sweep_index;
 
     void update_masses(){
       int b = std::numeric_limits<int>::max();
@@ -253,6 +254,7 @@ class GSA {
           std::cout << i++ << ": " <<
             agents[bigger_mass_index]->get_cost() << std::endl;
       }
+      sweep_index = bigger_mass_index;
     }
 
     std::string res(unsigned __int128 n) {
@@ -328,4 +330,42 @@ class GSA {
     int get_sol_size(){
       return agents[bigger_mass_index]->get_subset_size();
     }
+
+
+    void sweep_all(){
+      while(sweep(sweep_index)){}
+      bigger_mass_index = sweep_index;
+    }
+
+    bool sweep(int index){
+      for(int i = 0; i < size; i++){
+        for(int j = 0; j < size; j++){
+          int actual_cost = agents[index]->get_cost();
+          std::cout << "Iter:" << i <<
+            "," << j << " index: " <<
+            agents[index]->get_index() <<
+            " COST: " <<
+            agents[index]->get_cost() << std::endl;
+          if(i == j)
+            continue;
+          if(actual_cost == 0)
+            break;
+          agents[index]->flip(i);
+          agents[index]->flip(j);
+          int after_cost = agents[index]->get_cost();
+          if (after_cost < actual_cost){
+            std::cout << "Sweep :" <<
+              agents[index]->get_cost();
+            actual_cost = after_cost;
+            return true;
+          }else{
+            agents[index]->flip(i);
+            agents[index]->flip(j);
+          }
+        }
+      }
+      return false;
+    }
+
+
 };
