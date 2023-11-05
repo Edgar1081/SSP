@@ -241,10 +241,14 @@ class GSA {
     }
 
     void solve_gen(bool c){
+      std::mt19937 bigger_move;
+      bigger_move.seed(seed);
+      std::uniform_int_distribution<int> distrib(0, 9);
       int i = 0;
       while(!all_together()){
-        // if(agents[bigger_mass_index]->get_cost() > 0)
-        //   random_move(bigger_mass_index);
+        if(agents[bigger_mass_index]->get_cost() > 0 &&
+           distrib(bigger_move) == 0)
+          random_move(bigger_mass_index);
         random_move(smaller_mass_index);
         update_masses();
         update_sys();
