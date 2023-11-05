@@ -28,7 +28,6 @@ int main(int argc, char *argv[]) {
         std::make_unique<GSA>(seed, rosas, size, orig, target);
 
 
-
     gsa->print_masses();
     gsa->solve();
     gsa->print_masses();
@@ -47,6 +46,7 @@ int main(int argc, char *argv[]) {
     for(int i = 0; i < subset_size; i++)
         std::cout<< best[i] << ",";
 
+    std::cout<< std::endl;
     std::cout<< subset_size;
 
     return 0;

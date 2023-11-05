@@ -243,10 +243,10 @@ class GSA {
     void solve_gen(bool c){
       int i = 0;
       while(!all_together()){
-        if(agents[bigger_mass_index]->get_cost() > 0)
-          random_move(bigger_mass_index);
+        // if(agents[bigger_mass_index]->get_cost() > 0)
+        //   random_move(bigger_mass_index);
         random_move(smaller_mass_index);
-        update_massive();
+        update_masses();
         update_sys();
 
         iterate(c);
@@ -255,6 +255,72 @@ class GSA {
             agents[bigger_mass_index]->get_cost() << std::endl;
       }
       sweep_index = bigger_mass_index;
+    }
+
+
+    void iterate(bool c){
+      std::tuple<int, double>* s= new std::tuple<int, double>[rosas];
+      for(int i = 0; i < rosas; i++)
+        s[i] = std::make_tuple(i, agents[i]->get_v());
+      std::sort(s, s + rosas, compare_tuples);
+
+      if(c)
+        print_coords();
+
+      int actual_bigger = bigger_mass_index;
+
+      for(int i = 0; i< rosas; i++){
+        std::shared_ptr<Agent> agent =
+          agents[std::get<0>(s[i])];
+        int index = agent->get_index();
+        int v = agent->get_v();
+        if(v == 0)
+          continue;
+
+        for(int j = 0; j < v; j++){
+          close(index, bigger_mass_index);
+          update_masses();
+          update_sys();
+          if(actual_bigger != bigger_mass_index)
+            return;
+        }
+      }
+      delete [] s;
+    }
+
+
+    bool sweep(int index){
+      for(int i = 0; i < size; i++){
+        for(int j = i+1; j < size; j++){
+          int actual_cost = agents[index]->get_cost();
+          if(i == j)
+            continue;
+          if(actual_cost == 0)
+            return false;
+          agents[index]->flip(i);
+          agents[index]->flip(j);
+          int after_cost = agents[index]->get_cost();
+          if (after_cost < actual_cost){
+            std::cout << "Sweep :" <<
+              agents[index]->get_cost() << std::endl;
+            actual_cost = after_cost;
+            return true;
+          }else{
+            agents[index]->flip(i);
+            agents[index]->flip(j);
+          }
+        }
+      }
+      return false;
+    }
+
+    void print_coords(){
+      for(int i = 0; i< rosas; i++){
+        std::shared_ptr<Agent> a = agents[i];
+        std::cout << res(a->get_x()) << "," <<
+          res(a->get_y()) << "," << a->get_mass() << std::endl;
+      }
+      std::cout << std::endl;
     }
 
     std::string res(unsigned __int128 n) {
@@ -277,39 +343,6 @@ class GSA {
         result = '-' + result;
       }
       return result;
-    }
-    void print_coords(){
-      for(int i = 0; i< rosas; i++){
-        std::shared_ptr<Agent> a = agents[i];
-        std::cout << res(a->get_x()) << "," <<
-          res(a->get_y()) << "," << a->get_mass() << std::endl;
-      }
-      std::cout << std::endl;
-    }
-
-    void iterate(bool c){
-      std::tuple<int, double>* s= new std::tuple<int, double>[rosas];
-      for(int i = 0; i < rosas; i++)
-        s[i] = std::make_tuple(i, agents[i]->get_v());
-      std::sort(s, s + rosas, compare_tuples);
-
-      if(c)
-        print_coords();
-      for(int i = 0; i< rosas; i++){
-        std::shared_ptr<Agent> agent =
-          agents[std::get<0>(s[i])];
-        int index = agent->get_index();
-        if(index == bigger_mass_index)
-          continue;
-
-        int v = agent->get_v();
-        for(int j = 0; j < v; j++){
-          close(index, bigger_mass_index);
-          update_masses();
-          update_sys();
-        }
-      }
-      delete [] s;
     }
 
     void random_move(int i){
@@ -337,35 +370,6 @@ class GSA {
       bigger_mass_index = sweep_index;
     }
 
-    bool sweep(int index){
-      for(int i = 0; i < size; i++){
-        for(int j = 0; j < size; j++){
-          int actual_cost = agents[index]->get_cost();
-          std::cout << "Iter:" << i <<
-            "," << j << " index: " <<
-            agents[index]->get_index() <<
-            " COST: " <<
-            agents[index]->get_cost() << std::endl;
-          if(i == j)
-            continue;
-          if(actual_cost == 0)
-            break;
-          agents[index]->flip(i);
-          agents[index]->flip(j);
-          int after_cost = agents[index]->get_cost();
-          if (after_cost < actual_cost){
-            std::cout << "Sweep :" <<
-              agents[index]->get_cost();
-            actual_cost = after_cost;
-            return true;
-          }else{
-            agents[index]->flip(i);
-            agents[index]->flip(j);
-          }
-        }
-      }
-      return false;
-    }
 
 
 };
