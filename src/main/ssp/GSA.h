@@ -45,7 +45,7 @@ class GSA {
     }
 
     void fill_agents(std::shared_ptr<Instance> ins){
-      std::uniform_int_distribution<int> M(1, 99);
+      std::uniform_int_distribution<int> M(0, 999);
       agents = new std::shared_ptr<Agent>[rosas];
       int prob = 0;
       int probofprob = 0;
@@ -57,6 +57,14 @@ class GSA {
           std::make_shared<Agent>(ins, size, i, target, prob);
         agents[i] = agent;
       }
+
+      while(zero_d()!= 0){
+        int i = std::get<0>(zero_indexes());
+        int j = std::get<0>(zero_indexes());
+        random_move(i);
+        random_move(j);
+      }
+
     }
 
     void update_massive(){
@@ -186,6 +194,29 @@ class GSA {
       }
     }
 
+
+    std::tuple<int, int> zero_indexes(){
+      for(int i = 0; i < rosas; i++){
+        for(int j= i+1; j < rosas; j++){
+          int d = distance(i,j);
+          if(d == 0)
+            return std::make_tuple(i,j);
+        }
+      }
+    }
+
+    int zero_d(){
+      int z = 0;
+      for(int i = 0; i < rosas; i++){
+        for(int j= i+1; j < rosas; j++){
+          int d = distance(i,j);
+          if(d == 0)
+            z++;
+        }
+      }
+      return z;
+    }
+
     double get_massive(){
       return bigger_mass;
     }
@@ -243,7 +274,7 @@ class GSA {
     void solve_gen(bool c){
       std::mt19937 bigger_move;
       bigger_move.seed(seed);
-      std::uniform_int_distribution<int> distrib(0, 9);
+      std::uniform_int_distribution<int> distrib(0, 1);
       int i = 0;
       while(!all_together()){
         if(agents[bigger_mass_index]->get_cost() > 0 &&
@@ -260,7 +291,6 @@ class GSA {
       }
       sweep_index = bigger_mass_index;
     }
-
 
     void iterate(bool c){
       std::tuple<int, double>* s= new std::tuple<int, double>[rosas];
@@ -291,7 +321,6 @@ class GSA {
       }
       delete [] s;
     }
-
 
     bool sweep(int index){
       for(int i = 0; i < size; i++){
@@ -368,12 +397,9 @@ class GSA {
       return agents[bigger_mass_index]->get_subset_size();
     }
 
-
     void sweep_all(){
       while(sweep(sweep_index)){}
       bigger_mass_index = sweep_index;
     }
-
-
 
 };

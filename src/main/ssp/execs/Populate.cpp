@@ -27,17 +27,17 @@ int main(int argc, char *argv[]) {
     std::unique_ptr<GSA> gsa =
         std::make_unique<GSA>(seed, rosas, size, orig, target);
 
+    int largest = gsa->get_farest();
+    int zeros = gsa->zero_d();
 
     gsa->print_masses();
     gsa->solve();
     gsa->print_masses();
     std::cout<< std::endl;
 
-
     std::cout<< std::endl;
 
     gsa->sweep_all();
-
 
     std::shared_ptr<int []> best = gsa->get_sol();
     int subset_size = gsa->get_sol_size();
@@ -49,5 +49,12 @@ int main(int argc, char *argv[]) {
     std::cout<< std::endl;
     std::cout<< subset_size;
 
+
+    // std::cout<< std::endl;
+    // std::cout<< largest;
+
+
+    // std::cout<< std::endl;
+    // std::cout<< zeros;
     return 0;
 }
